@@ -61,6 +61,7 @@ const sceneCtx = sceneCanvas.getContext("2d");
 const state = {
   running: true,
   elapsed: 0,
+  breakAnimationElapsed: 0,
   lastRealTime: performance.now(),
   thresholdMinutes: Number(thresholdInput.value),
   speed: Number(speedInput.value),
@@ -88,6 +89,7 @@ const locations = {
   channel0: gl.getUniformLocation(program, "iChannel0"),
   resolution: gl.getUniformLocation(program, "iResolution"),
   time: gl.getUniformLocation(program, "iTime"),
+  focusProgress: gl.getUniformLocation(program, "iFocusProgress"),
   date: gl.getUniformLocation(program, "iDate"),
   timeCursorChange: gl.getUniformLocation(program, "iTimeCursorChange"),
   currentCursorColor: gl.getUniformLocation(program, "iCurrentCursorColor"),
@@ -116,6 +118,13 @@ async function loadGhosttyShader() {
     throw new Error(`Failed to load original shader: ${response.status}`);
   }
   const original = await response.text();
+  const patched = original.replace(
+    "? min(mod(iTime, DEMO_SEC) / DEMO_GROW_SEC, 1.0)",
+    "? clamp(iFocusProgress, 0.0, 1.0)",
+  );
+  if (patched === original) {
+    throw new Error("Failed to wire focus progress into demo shader mode");
+  }
   return `#version 300 es
 precision highp float;
 precision highp int;
@@ -123,6 +132,7 @@ precision highp int;
 uniform sampler2D iChannel0;
 uniform vec3 iResolution;
 uniform float iTime;
+uniform float iFocusProgress;
 uniform vec4 iDate;
 uniform float iTimeCursorChange;
 uniform vec4 iCurrentCursorColor;
@@ -130,7 +140,7 @@ uniform vec4 iPreviousCursorColor;
 
 out vec4 outColor;
 
-${original}
+${patched}
 
 void main() {
   mainImage(outColor, gl_FragCoord.xy);
@@ -397,13 +407,18 @@ function render(now) {
 
   const thresholdSeconds = state.thresholdMinutes * 60;
   const progress = Math.min(state.elapsed / thresholdSeconds, 1);
+  if (state.running && progress >= 1) {
+    state.breakAnimationElapsed += dt;
+  } else if (progress < 1) {
+    state.breakAnimationElapsed = 0;
+  }
   drawScene(now / 1000, progress);
 
   gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sceneCanvas);
 
   const tokenColor = encodeTokenColor(progress);
-  const shaderTime = progress * 40;
+  const shaderTime = progress * 40 + state.breakAnimationElapsed;
   const secondsToday = new Date().getHours() * 3600 + new Date().getMinutes() * 60 + new Date().getSeconds();
 
   gl.useProgram(program);
@@ -415,6 +430,7 @@ function render(now) {
   gl.uniform1i(locations.channel0, 0);
   gl.uniform3f(locations.resolution, canvas.width, canvas.height, 1);
   gl.uniform1f(locations.time, shaderTime);
+  gl.uniform1f(locations.focusProgress, progress);
   gl.uniform4f(locations.date, 2026, 6, 28, secondsToday);
   gl.uniform1f(locations.timeCursorChange, prefersReducedMotion ? 0 : now / 1000);
   gl.uniform4fv(locations.currentCursorColor, tokenColor);
@@ -460,6 +476,7 @@ toggleButton.addEventListener("click", () => {
 
 resetButton.addEventListener("click", () => {
   state.elapsed = 0;
+  state.breakAnimationElapsed = 0;
   state.running = false;
   state.lastRealTime = performance.now();
 });
