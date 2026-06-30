@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Black Hole Timer</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <canvas id="blackhole" aria-label="Animated black hole timer preview"></canvas>
+
+      <section class="control-panel" aria-label="Black hole timer controls">
+        <div class="panel-header">
+          <div class="title-block">
+            <p class="kicker">Focus timer prototype</p>
+            <h1>Black Hole Timer</h1>
+            <p class="summary">
+              The longer the work session runs, the larger the black hole grows.
+              When it fills the scene, it is time to step away.
+            </p>
+          </div>
+          <button id="panelToggle" class="panel-toggle" type="button" aria-expanded="true" aria-label="Collapse controls">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="status-row" aria-live="polite">
+          <div>
+            <span class="label">Focus time</span>
+            <strong id="elapsed">00:00</strong>
+          </div>
+          <div>
+            <span class="label">Intensity</span>
+            <strong id="intensity">0%</strong>
+          </div>
+          <div>
+            <span class="label">State</span>
+            <strong id="state">Ready</strong>
+          </div>
+        </div>
+
+        <div class="meter" aria-hidden="true">
+          <span id="meterFill"></span>
+        </div>
+
+        <div class="controls">
+          <button id="toggle" type="button">Start</button>
+          <button id="reset" type="button" class="secondary">Reset</button>
+        </div>
+
+        <div class="settings">
+          <label class="field-control">
+            <span>Break threshold</span>
+            <input id="threshold" type="range" min="1" max="60" value="25" />
+            <span id="thresholdLabel">25 min</span>
+            <small class="field-help">How long a focus session lasts before the black hole reaches full intensity.</small>
+          </label>
+          <label class="field-control">
+            <span>Demo speed</span>
+            <select id="speed">
+              <option value="1">1x real time</option>
+              <option value="3">3x</option>
+              <option value="5">5x</option>
+              <option value="10">10x</option>
+              <option value="30">30x</option>
+              <option value="120" selected>120x</option>
+              <option value="600">600x</option>
+            </select>
+          </label>
+          <label class="field-control">
+            <span>Background</span>
+            <select id="scene">
+              <option value="reference">Dense code field</option>
+              <option value="work">Workspace mockup</option>
+            </select>
+          </label>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

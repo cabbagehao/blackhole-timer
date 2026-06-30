@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Black Hole Desktop Overlay</title>
+    <link rel="stylesheet" href="./desktop.css" />
+  </head>
+  <body>
+    <canvas id="blackhole" aria-label="Black hole desktop overlay"></canvas>
+    <video id="capture" autoplay muted playsinline></video>
+
+    <section class="panel" aria-label="Desktop overlay controls">
+      <div class="title-row">
+        <div>
+          <p class="kicker" id="hostLabel">Windows desktop</p>
+          <h1>Black Hole Overlay</h1>
+        </div>
+        <strong id="status">Idle</strong>
+      </div>
+
+      <div class="meter" aria-hidden="true">
+        <span id="meterFill"></span>
+      </div>
+
+      <div class="readouts">
+        <div>
+          <span>Intensity</span>
+          <strong id="intensityLabel">0%</strong>
+        </div>
+        <div>
+          <span>Elapsed</span>
+          <strong id="elapsedLabel">00:00</strong>
+        </div>
+        <div>
+          <span>FPS</span>
+          <strong id="fpsLabel">--</strong>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="captureButton" type="button">Start Capture</button>
+        <button id="passthroughButton" type="button" class="secondary">Pass Through</button>
+        <button id="resetButton" type="button" class="secondary">Reset</button>
+      </div>
+
+      <label class="field">
+        <span>Session length</span>
+        <input id="thresholdInput" type="range" min="1" max="90" value="25" />
+        <strong id="thresholdLabel">25 min</strong>
+      </label>
+
+      <label class="field">
+        <span>Demo speed</span>
+        <select id="speedInput">
+          <option value="1">1x</option>
+          <option value="3">3x</option>
+          <option value="10">10x</option>
+          <option value="30" selected>30x</option>
+          <option value="120">120x</option>
+          <option value="600">600x</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Visual strength</span>
+        <input id="strengthInput" type="range" min="0.35" max="1.35" step="0.01" value="1" />
+        <strong id="strengthLabel">1.00x</strong>
+      </label>
+
+      <p class="hint">
+        Ctrl+Alt+B toggles click-through in the Windows hosts. The overlay window is excluded from capture where the host supports it.
+      </p>
+    </section>
+
+    <script type="module" src="./desktop-renderer.js"></script>
+  </body>
+</html>

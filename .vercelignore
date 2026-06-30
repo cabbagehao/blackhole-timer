@@ -1,0 +1,14 @@
+*.png
+*.webm
+*.mp4
+node_modules/
+dist/
+build/
+coverage/
+desktop/
+electron/
+extension/
+windows-native-d3d/
+windows-webview2/
+.git/
+.github/

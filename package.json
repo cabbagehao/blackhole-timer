@@ -1,0 +1,29 @@
+{
+  "name": "blackhole-timer",
+  "version": "0.2.0",
+  "private": false,
+  "type": "module",
+  "description": "Visual black hole timer demos for browser and Windows desktop hosts.",
+  "license": "MIT",
+  "homepage": "https://blackhole-timer.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cabbagehao/blackhole-timer.git"
+  },
+  "scripts": {
+    "start": "python3 -m http.server 4173",
+    "dev": "python3 -m http.server 4173",
+    "web": "python3 -m http.server 4173",
+    "desktop:web": "python3 -m http.server 4173",
+    "windows:electron": "electron ./electron/main.cjs",
+    "windows:electron:demo": "electron ./electron/main.cjs --demo",
+    "windows:native:configure": "cmake -S ./windows-native-d3d -B ./windows-native-d3d/build -G \"Visual Studio 17 2022\" -A x64",
+    "windows:native:build": "cmake --build ./windows-native-d3d/build --config Release",
+    "windows:webview2:publish": "dotnet publish ./windows-webview2/BlackHoleRest.WebView2.csproj -c Release -r win-x64 --self-contained false",
+    "windows:webview2:build": "dotnet build ./windows-webview2/BlackHoleRest.WebView2.csproj",
+    "windows:webview2:run": "dotnet run --project ./windows-webview2/BlackHoleRest.WebView2.csproj"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

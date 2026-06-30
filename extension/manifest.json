@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Black Hole Timer",
+  "version": "0.1.0",
+  "description": "A cross-tab black hole timer that grows with browser activity.",
+  "permissions": ["idle", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["blackhole-port.frag"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_title": "Black Hole Timer"
+  }
+}
