@@ -1,3 +1,7 @@
+<p align="right">
+  English | <a href="./README.zh-CN.md">简体中文</a>
+</p>
+
 # Black Hole Timer
 
 Black Hole Timer is a visual focus timer that turns elapsed screen time into a
@@ -8,8 +12,6 @@ lensing effect than a normal progress bar.
 ![Black Hole Timer browser demo preview](./docs/preview.webp)
 
 Live demo: <https://blackhole-timer.vercel.app/>
-
-中文说明: [README.zh-CN.md](./README.zh-CN.md)
 
 ## Use Cases
 
