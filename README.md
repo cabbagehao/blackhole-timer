@@ -107,6 +107,8 @@ experiments.
 - The shader runs in `MODE_DEMO`; JavaScript maps timer progress to the
   shader's demo timeline so the accretion disk shape changes as the session
   advances.
+- The accretion disk uses an Interstellar-like look: the far side arcs over
+  and under the shadow, with higher-order disk images near the photon ring.
 
 ## Credits
 
