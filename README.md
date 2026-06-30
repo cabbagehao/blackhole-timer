@@ -8,6 +8,16 @@ rest" is impossible to ignore.
 
 Live demo: <https://blackhole-timer.vercel.app/>
 
+## Why Build This
+
+The original
+[Ghostty Blackhole](https://github.com/s0xDk/ghostty-blackhole) brings a
+ray-traced black hole into the Ghostty terminal. I loved the effect, but I did
+not have that terminal installed and wanted to use the same idea in places I
+already spend time: browser pages and the desktop. This fork keeps the shader
+lineage and explores how the black hole can become a screen-time and break
+reminder outside the terminal.
+
 ## Use Cases
 
 - Focus sessions where the black hole grows as work time accumulates.

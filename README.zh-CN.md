@@ -6,6 +6,13 @@ Black Hole Timer 把一个真实感的 ray-traced 黑洞放进浏览器。专注
 
 在线 Demo：<https://blackhole-timer.vercel.app/>
 
+## 为什么做这个
+
+原项目 [Ghostty Blackhole](https://github.com/s0xDk/ghostty-blackhole)
+把 ray-traced 黑洞效果做进了 Ghostty 终端里。我很喜欢这个效果，但我没有安装这个终端，
+也更想在自己更常用的场景里使用它：浏览器页面和电脑桌面。所以我 fork 了原项目继续做二次开发，
+保留 shader 来源，并尝试把黑洞变成一种屏幕使用时长和休息提醒。
+
 ## 适用场景
 
 - 专注工作计时：工作时间越长，黑洞越大。
