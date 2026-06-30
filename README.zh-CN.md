@@ -4,7 +4,7 @@ Black Hole Timer 是一个用黑洞视觉表现时间压力的专注计时器。
 
 ![Black Hole Timer 浏览器 demo 预览](./docs/preview.webp)
 
-在线 Demo：**待部署**
+在线 Demo：<https://blackhole-timer-max-fox.vercel.app/>
 
 English README: [README.md](./README.md)
 
