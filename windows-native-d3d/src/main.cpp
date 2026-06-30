@@ -42,6 +42,8 @@ struct FrameState {
   float time;
   float intensity;
   float center[2];
+  float viewportOrigin[2];
+  float viewportSize[2];
   float strength;
   float overlayScale;
   float overlayFeather;
@@ -104,15 +106,18 @@ class OverlayApp {
   void CreateOverlayWindow() {
     const int width = GetSystemMetrics(SM_CXSCREEN);
     const int height = GetSystemMetrics(SM_CYSCREEN);
+    screenWidth_ = std::max(1, width);
+    screenHeight_ = std::max(1, height);
+    overlaySize_ = std::max(320, static_cast<int>(std::ceil(screenHeight_ * 0.42f)));
     hwnd_ = CreateWindowEx(
         WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_NOREDIRECTIONBITMAP,
         kWindowClass,
         L"Black Hole Rest Native D3D",
         WS_POPUP,
-        0,
-        0,
-        width,
-        height,
+        (screenWidth_ - overlaySize_) / 2,
+        (screenHeight_ - overlaySize_) / 2,
+        overlaySize_,
+        overlaySize_,
         nullptr,
         nullptr,
         instance_,
@@ -291,6 +296,7 @@ class OverlayApp {
   void RenderFrame() {
     EnsureCaptureTexture();
     CaptureLatestFrame();
+    UpdateOverlayBounds();
     UpdateConstants();
 
     const float clearColor[] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -387,16 +393,26 @@ class OverlayApp {
   void UpdateConstants() {
     const float progress = std::min(elapsedSeconds_ / sessionSeconds_, 1.0f);
     const float shaderTime = progress * 40.0f + afterThresholdSeconds_;
+    const float fullWidth = static_cast<float>(std::max(1, captureWidth_));
+    const float fullHeight = static_cast<float>(std::max(1, captureHeight_));
+    const float viewportWidth = static_cast<float>(std::max<LONG>(1, width_));
+    const float viewportHeight = static_cast<float>(std::max<LONG>(1, height_));
+    const float viewportLeft = static_cast<float>(overlayLeft_ - duplicationLeft_);
+    const float viewportTop = static_cast<float>(overlayTop_ - duplicationTop_);
 
     D3D11_MAPPED_SUBRESOURCE mapped{};
     if (SUCCEEDED(context_->Map(constantBuffer_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped))) {
       auto* state = static_cast<FrameState*>(mapped.pData);
-      state->resolution[0] = static_cast<float>(width_);
-      state->resolution[1] = static_cast<float>(height_);
+      state->resolution[0] = fullWidth;
+      state->resolution[1] = fullHeight;
       state->time = shaderTime;
       state->intensity = progress;
-      state->center[0] = 0.5f;
-      state->center[1] = 0.5f;
+      state->center[0] = centerX_;
+      state->center[1] = centerY_;
+      state->viewportOrigin[0] = viewportLeft / fullWidth;
+      state->viewportOrigin[1] = viewportTop / fullHeight;
+      state->viewportSize[0] = viewportWidth / fullWidth;
+      state->viewportSize[1] = viewportHeight / fullHeight;
       state->strength = 1.0f;
       state->overlayScale = 0.30f;
       state->overlayFeather = 0.045f;
@@ -405,6 +421,90 @@ class OverlayApp {
       state->padding0[2] = 0.0f;
       context_->Unmap(constantBuffer_.Get(), 0);
     }
+  }
+
+  void UpdateOverlayBounds() {
+    const float progress = std::clamp(elapsedSeconds_ / sessionSeconds_, 0.0f, 1.0f);
+    const float aspect = static_cast<float>(std::max(1, captureWidth_)) / static_cast<float>(std::max(1, captureHeight_));
+    const float tokenAreaMin = 0.0100f;
+    const float tokenAreaMax = 0.5000f;
+    const float holeRadius = 0.0200f;
+    const float maxShadowRadius = 0.0350f;
+    const float workArea = 0.3300f;
+    const float g = progress;
+    const float rhMin = std::sqrt(tokenAreaMin * aspect / 3.1415927f);
+    const float rhMax = std::sqrt(tokenAreaMax * aspect / 3.1415927f);
+    const float rhT = std::min(std::lerp(rhMin, rhMax, g) * (holeRadius / 0.08f), maxShadowRadius);
+    const float marg = std::min(rhT * std::lerp(1.45f, 0.90f, g), 0.5f * (1.0f - workArea - 0.03f));
+    const float xPad = marg / aspect;
+    const float fullLoX = std::min(xPad, 0.5f);
+    const float fullLoY = marg;
+    const float fullHiX = std::max(0.5f, 1.0f - xPad);
+    const float fullHiY = std::max(marg, 1.0f - (workArea + 0.03f + marg));
+    const float cornerX = std::clamp(0.9600f, fullLoX, fullHiX);
+    const float cornerY = std::clamp(0.0400f, fullLoY, fullHiY);
+    const float reach = std::lerp(0.06f, 1.0f, g);
+    const float loX = std::lerp(cornerX, fullLoX, reach);
+    const float loY = fullLoY;
+    const float hiX = fullHiX;
+    const float hiY = std::lerp(cornerY, fullHiY, reach);
+    const float roomX = std::max((hiX - loX) * 0.5f, 0.0f);
+    const float roomY = std::max((hiY - loY) * 0.5f, 0.0f);
+    const float wob = 0.010f + 0.030f * g;
+    const float wobAmpX = std::min(wob, std::max(roomX * 0.35f, 0.006f));
+    const float wobAmpY = std::min(wob, std::max(roomY * 0.35f, 0.006f));
+    const float ampX = std::max(roomX - wobAmpX, 0.0f);
+    const float ampY = std::max(roomY - wobAmpY, 0.0f);
+    const float t = progress * 40.0f + afterThresholdSeconds_;
+    const float calmX = 0.75f * std::sin(t * 0.0400f * 0.37f) + 0.25f * std::sin(t * 0.0400f * 0.83f + 1.0f);
+    const float calmY = 0.70f * std::sin(t * 0.0400f * 0.54f + 2.1f) + 0.30f * std::sin(t * 0.0400f * 1.07f);
+    const float rushX = 0.75f * std::sin(t * 1.1000f * 0.37f) + 0.25f * std::sin(t * 1.1000f * 0.83f + 1.0f);
+    const float rushY = 0.70f * std::sin(t * 1.1000f * 0.54f + 2.1f) + 0.30f * std::sin(t * 1.1000f * 1.07f);
+    const float wanderX = std::lerp(calmX, rushX, g);
+    const float wanderY = std::lerp(calmY, rushY, g);
+    centerX_ = (loX + hiX) * 0.5f + wanderX * ampX + wobAmpX * std::cos(t * 0.8f);
+    centerY_ = (loY + hiY) * 0.5f + wanderY * ampY + wobAmpY * std::sin(t * 1.0f);
+
+    const int desiredSize = std::max(320, static_cast<int>(std::ceil(std::max(1, captureHeight_) * 0.42f)));
+    if (desiredSize != overlaySize_) {
+      overlaySize_ = desiredSize;
+      ResizeSwapChain();
+    }
+
+    const int outputLeft = static_cast<int>(duplicationLeft_);
+    const int outputTop = static_cast<int>(duplicationTop_);
+    const int outputWidth = static_cast<int>(captureWidth_);
+    const int outputHeight = static_cast<int>(captureHeight_);
+    const int centerXpx = outputLeft + static_cast<int>(std::round(centerX_ * outputWidth));
+    const int centerYpx = outputTop + static_cast<int>(std::round(centerY_ * outputHeight));
+    const int maxLeft = outputLeft + std::max(0, outputWidth - overlaySize_);
+    const int maxTop = outputTop + std::max(0, outputHeight - overlaySize_);
+    overlayLeft_ = std::clamp(centerXpx - overlaySize_ / 2, outputLeft, maxLeft);
+    overlayTop_ = std::clamp(centerYpx - overlaySize_ / 2, outputTop, maxTop);
+    SetWindowPos(
+        hwnd_,
+        HWND_TOPMOST,
+        overlayLeft_,
+        overlayTop_,
+        overlaySize_,
+        overlaySize_,
+        SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING);
+
+    RECT rect{};
+    GetClientRect(hwnd_, &rect);
+    width_ = std::max<LONG>(1, rect.right - rect.left);
+    height_ = std::max<LONG>(1, rect.bottom - rect.top);
+  }
+
+  void ResizeSwapChain() {
+    if (!swapChain_) {
+      return;
+    }
+    ID3D11RenderTargetView* nullTarget = nullptr;
+    context_->OMSetRenderTargets(1, &nullTarget, nullptr);
+    renderTarget_.Reset();
+    ThrowIfFailed(swapChain_->ResizeBuffers(0, overlaySize_, overlaySize_, DXGI_FORMAT_UNKNOWN, 0), "ResizeBuffers failed");
+    CreateRenderTarget();
   }
 
   void TogglePassthrough() {
@@ -464,10 +564,17 @@ class OverlayApp {
   bool passthrough_{false};
   LONG width_{1};
   LONG height_{1};
+  int screenWidth_{1};
+  int screenHeight_{1};
+  int overlaySize_{320};
+  int overlayLeft_{0};
+  int overlayTop_{0};
   LONG captureWidth_{1};
   LONG captureHeight_{1};
   LONG duplicationLeft_{0};
   LONG duplicationTop_{0};
+  float centerX_{0.5f};
+  float centerY_{0.5f};
   float elapsedSeconds_{0.0f};
   float afterThresholdSeconds_{0.0f};
   float speed_{1.0f};

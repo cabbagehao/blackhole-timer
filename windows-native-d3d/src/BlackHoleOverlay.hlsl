@@ -7,6 +7,8 @@ cbuffer FrameState : register(b0)
     float time;
     float intensity;
     float2 hostCenter;
+    float2 viewportOrigin;
+    float2 viewportSize;
     float strength;
     float overlayScale;
     float overlayFeather;
@@ -227,7 +229,7 @@ float4 Premul(float3 color, float alpha)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    float2 uv = input.uv;
+    float2 uv = viewportOrigin + input.uv * viewportSize;
     float2 res = max(resolution, float2(1.0, 1.0));
     float aspect = res.x / res.y;
     float yUp = 1.0 - uv.y;
@@ -248,20 +250,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     float rhT = lerp(rhMin, rhMax, gFill) * (HOLE_RADIUS / 0.08);
     rhT = min(rhT, MAX_SHADOW_RADIUS);
     float sz = rhT / max(HOLE_RADIUS, 1e-4);
-
-    float marg = min(rhT * lerp(1.45, 0.90, gFill), 0.5 * (1.0 - WORK_AREA - 0.03));
-    float xPad = marg / aspect;
-    float2 fullLo = float2(min(xPad, 0.5), marg);
-    float2 fullHi = float2(max(0.5, 1.0 - xPad), max(marg, 1.0 - (WORK_AREA + 0.03 + marg)));
-    float2 corner = clamp(float2(TOKEN_HOME_X, TOKEN_HOME_Y), fullLo, fullHi);
-    float reach = lerp(0.06, max(TOKEN_REACH, 0.06), gFill);
-    float2 lo = float2(lerp(corner.x, fullLo.x, reach), fullLo.y);
-    float2 hi = float2(fullHi.x, lerp(corner.y, fullHi.y, reach));
-    float2 room = max((hi - lo) * 0.5, float2(0.0, 0.0));
-    float2 wobAmp = min(float2(0.010 + 0.030 * gFill, 0.010 + 0.030 * gFill), max(room * 0.35, float2(0.006, 0.006)));
-    float2 ampEff = max(room - wobAmp, float2(0.0, 0.0));
-    float2 wander = lerp(Lissa(t * TOKEN_CALM), Lissa(t * TOKEN_RUSH), gFill);
-    float2 center = (lo + hi) * 0.5 + wander * ampEff + wobAmp * float2(cos(t * 0.8), sin(t * 1.0));
+    float2 center = hostCenter;
 
     float3 original = desktopTexture.Sample(linearSampler, uv).rgb;
     float vis = Smooth01(0.0, 0.10, I);
