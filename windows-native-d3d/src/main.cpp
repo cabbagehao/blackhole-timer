@@ -73,9 +73,14 @@ class OverlayApp {
       }
 
       auto now = Clock::now();
-      const float dt = std::chrono::duration<float>(now - lastFrame).count();
+      const float dt = std::min(std::chrono::duration<float>(now - lastFrame).count(), 0.2f);
       lastFrame = now;
-      elapsedSeconds_ += std::min(dt, 0.2f) * speed_;
+      elapsedSeconds_ += dt * speed_;
+      if (elapsedSeconds_ >= sessionSeconds_) {
+        afterThresholdSeconds_ += dt;
+      } else {
+        afterThresholdSeconds_ = 0.0f;
+      }
       RenderFrame();
     }
 
@@ -381,22 +386,20 @@ class OverlayApp {
 
   void UpdateConstants() {
     const float progress = std::min(elapsedSeconds_ / sessionSeconds_, 1.0f);
-    const float reach = 0.08f + progress * 0.2f;
-    const float centerX = std::clamp(0.62f + std::sin(elapsedSeconds_ * 0.019f) * reach + std::sin(elapsedSeconds_ * 0.0047f) * reach * 0.35f, 0.16f, 0.84f);
-    const float centerY = std::clamp(0.52f + std::cos(elapsedSeconds_ * 0.016f) * reach * 0.58f + std::sin(elapsedSeconds_ * 0.0071f) * reach * 0.28f, 0.18f, 0.82f);
+    const float shaderTime = progress * 40.0f + afterThresholdSeconds_;
 
     D3D11_MAPPED_SUBRESOURCE mapped{};
     if (SUCCEEDED(context_->Map(constantBuffer_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped))) {
       auto* state = static_cast<FrameState*>(mapped.pData);
       state->resolution[0] = static_cast<float>(width_);
       state->resolution[1] = static_cast<float>(height_);
-      state->time = elapsedSeconds_;
+      state->time = shaderTime;
       state->intensity = progress;
-      state->center[0] = centerX;
-      state->center[1] = centerY;
+      state->center[0] = 0.5f;
+      state->center[1] = 0.5f;
       state->strength = 1.0f;
-      state->overlayScale = 1.35f;
-      state->overlayFeather = 0.075f;
+      state->overlayScale = 0.30f;
+      state->overlayFeather = 0.045f;
       state->padding0[0] = 0.0f;
       state->padding0[1] = 0.0f;
       state->padding0[2] = 0.0f;
@@ -462,7 +465,8 @@ class OverlayApp {
   LONG duplicationLeft_{0};
   LONG duplicationTop_{0};
   float elapsedSeconds_{0.0f};
-  float speed_{30.0f};
+  float afterThresholdSeconds_{0.0f};
+  float speed_{1.0f};
   float sessionSeconds_{25.0f * 60.0f};
 
   ComPtr<ID3D11Device> device_;
