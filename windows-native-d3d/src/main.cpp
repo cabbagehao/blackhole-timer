@@ -393,8 +393,10 @@ class OverlayApp {
   void UpdateConstants() {
     const float progress = std::min(elapsedSeconds_ / sessionSeconds_, 1.0f);
     const float shaderTime = progress * 40.0f + afterThresholdSeconds_;
-    const float fullWidth = static_cast<float>(std::max(1, captureWidth_));
-    const float fullHeight = static_cast<float>(std::max(1, captureHeight_));
+    const int captureW = std::max(1, static_cast<int>(captureWidth_));
+    const int captureH = std::max(1, static_cast<int>(captureHeight_));
+    const float fullWidth = static_cast<float>(captureW);
+    const float fullHeight = static_cast<float>(captureH);
     const float viewportWidth = static_cast<float>(std::max<LONG>(1, width_));
     const float viewportHeight = static_cast<float>(std::max<LONG>(1, height_));
     const float viewportLeft = static_cast<float>(overlayLeft_ - duplicationLeft_);
@@ -425,7 +427,9 @@ class OverlayApp {
 
   void UpdateOverlayBounds() {
     const float progress = std::clamp(elapsedSeconds_ / sessionSeconds_, 0.0f, 1.0f);
-    const float aspect = static_cast<float>(std::max(1, captureWidth_)) / static_cast<float>(std::max(1, captureHeight_));
+    const int captureW = std::max(1, static_cast<int>(captureWidth_));
+    const int captureH = std::max(1, static_cast<int>(captureHeight_));
+    const float aspect = static_cast<float>(captureW) / static_cast<float>(captureH);
     const float tokenAreaMin = 0.0100f;
     const float tokenAreaMax = 0.5000f;
     const float holeRadius = 0.0200f;
@@ -465,7 +469,7 @@ class OverlayApp {
     centerX_ = (loX + hiX) * 0.5f + wanderX * ampX + wobAmpX * std::cos(t * 0.8f);
     centerY_ = (loY + hiY) * 0.5f + wanderY * ampY + wobAmpY * std::sin(t * 1.0f);
 
-    const int desiredSize = std::max(320, static_cast<int>(std::ceil(std::max(1, captureHeight_) * 0.42f)));
+    const int desiredSize = std::max(320, static_cast<int>(std::ceil(static_cast<float>(captureH) * 0.42f)));
     if (desiredSize != overlaySize_) {
       overlaySize_ = desiredSize;
       ResizeSwapChain();
@@ -473,8 +477,8 @@ class OverlayApp {
 
     const int outputLeft = static_cast<int>(duplicationLeft_);
     const int outputTop = static_cast<int>(duplicationTop_);
-    const int outputWidth = static_cast<int>(captureWidth_);
-    const int outputHeight = static_cast<int>(captureHeight_);
+    const int outputWidth = captureW;
+    const int outputHeight = captureH;
     const int centerXpx = outputLeft + static_cast<int>(std::round(centerX_ * outputWidth));
     const int centerYpx = outputTop + static_cast<int>(std::round(centerY_ * outputHeight));
     const int maxLeft = outputLeft + std::max(0, outputWidth - overlaySize_);
