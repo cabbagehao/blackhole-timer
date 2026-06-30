@@ -7,7 +7,7 @@ lensing effect than a normal progress bar.
 
 ![Black Hole Timer browser demo preview](./docs/preview.webp)
 
-Live demo: <https://blackhole-timer-max-fox.vercel.app/>
+Live demo: <https://blackhole-timer.vercel.app/>
 
 中文说明: [README.zh-CN.md](./README.zh-CN.md)
 

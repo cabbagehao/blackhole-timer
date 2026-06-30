@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Visual black hole timer demos for browser and Windows desktop hosts.",
   "license": "MIT",
-  "homepage": "https://blackhole-timer-max-fox.vercel.app",
+  "homepage": "https://blackhole-timer.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cabbagehao/blackhole-timer.git"
