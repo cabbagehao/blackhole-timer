@@ -5,6 +5,8 @@ growing, morphing black hole. The browser demo uses a WebGL2 port of the
 original Ghostty black hole shader, so the timer feels closer to a physical
 lensing effect than a normal progress bar.
 
+![Black Hole Timer browser demo preview](./docs/preview.webp)
+
 Live demo: **to be deployed**
 
 中文说明: [README.zh-CN.md](./README.zh-CN.md)

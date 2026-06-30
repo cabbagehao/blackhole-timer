@@ -2,6 +2,8 @@
 
 Black Hole Timer 是一个用黑洞视觉表现时间压力的专注计时器。工作或浏览时间越长，黑洞越大、形态越明显，用比普通进度条更强的方式提醒用户该休息了。
 
+![Black Hole Timer 浏览器 demo 预览](./docs/preview.webp)
+
 在线 Demo：**待部署**
 
 English README: [README.md](./README.md)
