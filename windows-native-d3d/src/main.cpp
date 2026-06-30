@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <dcomp.h>
 #include <dxgi1_2.h>
 #include <memory>
 #include <stdexcept>
@@ -42,7 +43,9 @@ struct FrameState {
   float intensity;
   float center[2];
   float strength;
-  float padding0;
+  float overlayScale;
+  float overlayFeather;
+  float padding0[3];
 };
 
 class OverlayApp {
@@ -88,7 +91,7 @@ class OverlayApp {
     wc.lpfnWndProc = &OverlayApp::WindowProc;
     wc.hInstance = instance_;
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wc.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
+    wc.hbrBackground = nullptr;
     wc.lpszClassName = kWindowClass;
     RegisterClassEx(&wc);
   }
@@ -97,7 +100,7 @@ class OverlayApp {
     const int width = GetSystemMetrics(SM_CXSCREEN);
     const int height = GetSystemMetrics(SM_CYSCREEN);
     hwnd_ = CreateWindowEx(
-        WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+        WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT | WS_EX_NOREDIRECTIONBITMAP,
         kWindowClass,
         L"Black Hole Rest Native D3D",
         WS_POPUP,
@@ -114,6 +117,7 @@ class OverlayApp {
     }
 
     SetWindowDisplayAffinity(hwnd_, WDA_EXCLUDEFROMCAPTURE_VALUE);
+    passthrough_ = true;
     RegisterHotKey(hwnd_, kHotkeyTogglePassthrough, MOD_CONTROL | MOD_ALT, 'B');
     RegisterHotKey(hwnd_, kHotkeyQuit, MOD_CONTROL | MOD_ALT, 'Q');
   }
@@ -123,17 +127,6 @@ class OverlayApp {
     GetClientRect(hwnd_, &rect);
     width_ = std::max<LONG>(1, rect.right - rect.left);
     height_ = std::max<LONG>(1, rect.bottom - rect.top);
-
-    DXGI_SWAP_CHAIN_DESC swapDesc{};
-    swapDesc.BufferCount = 2;
-    swapDesc.BufferDesc.Width = width_;
-    swapDesc.BufferDesc.Height = height_;
-    swapDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapDesc.OutputWindow = hwnd_;
-    swapDesc.SampleDesc.Count = 1;
-    swapDesc.Windowed = TRUE;
-    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
     UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #if defined(_DEBUG)
@@ -147,7 +140,7 @@ class OverlayApp {
     };
 
     ThrowIfFailed(
-        D3D11CreateDeviceAndSwapChain(
+        D3D11CreateDevice(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
@@ -155,15 +148,48 @@ class OverlayApp {
             levels.data(),
             static_cast<UINT>(levels.size()),
             D3D11_SDK_VERSION,
-            &swapDesc,
-            &swapChain_,
             &device_,
             &featureLevel,
             &context_),
-        "D3D11CreateDeviceAndSwapChain failed");
+        "D3D11CreateDevice failed");
 
+    CreateCompositionSwapChain();
     CreateRenderTarget();
     CreatePipeline();
+  }
+
+  void CreateCompositionSwapChain() {
+    ComPtr<IDXGIDevice> dxgiDevice;
+    ThrowIfFailed(device_.As(&dxgiDevice), "Query IDXGIDevice failed");
+
+    ComPtr<IDXGIAdapter> adapter;
+    ThrowIfFailed(dxgiDevice->GetAdapter(&adapter), "GetAdapter failed");
+
+    ComPtr<IDXGIFactory2> factory;
+    ThrowIfFailed(adapter->GetParent(IID_PPV_ARGS(&factory)), "Get DXGI factory failed");
+
+    DXGI_SWAP_CHAIN_DESC1 swapDesc{};
+    swapDesc.Width = static_cast<UINT>(width_);
+    swapDesc.Height = static_cast<UINT>(height_);
+    swapDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    swapDesc.Stereo = FALSE;
+    swapDesc.SampleDesc.Count = 1;
+    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapDesc.BufferCount = 2;
+    swapDesc.Scaling = DXGI_SCALING_STRETCH;
+    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    swapDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
+
+    ThrowIfFailed(
+        factory->CreateSwapChainForComposition(device_.Get(), &swapDesc, nullptr, &swapChain_),
+        "CreateSwapChainForComposition failed");
+
+    ThrowIfFailed(DCompositionCreateDevice(dxgiDevice.Get(), IID_PPV_ARGS(&compositionDevice_)), "DCompositionCreateDevice failed");
+    ThrowIfFailed(compositionDevice_->CreateTargetForHwnd(hwnd_, TRUE, &compositionTarget_), "CreateTargetForHwnd failed");
+    ThrowIfFailed(compositionDevice_->CreateVisual(&compositionVisual_), "CreateVisual failed");
+    ThrowIfFailed(compositionVisual_->SetContent(swapChain_.Get()), "SetContent failed");
+    ThrowIfFailed(compositionTarget_->SetRoot(compositionVisual_.Get()), "SetRoot failed");
+    ThrowIfFailed(compositionDevice_->Commit(), "Composition commit failed");
   }
 
   void CreateRenderTarget() {
@@ -262,7 +288,7 @@ class OverlayApp {
     CaptureLatestFrame();
     UpdateConstants();
 
-    const float clearColor[] = {0.02f, 0.024f, 0.02f, 1.0f};
+    const float clearColor[] = {0.0f, 0.0f, 0.0f, 0.0f};
     context_->ClearRenderTargetView(renderTarget_.Get(), clearColor);
 
     D3D11_VIEWPORT viewport{};
@@ -288,6 +314,9 @@ class OverlayApp {
     ID3D11ShaderResourceView* nullSrv[] = {nullptr};
     context_->PSSetShaderResources(0, 1, nullSrv);
     swapChain_->Present(1, 0);
+    if (compositionDevice_) {
+      compositionDevice_->Commit();
+    }
   }
 
   void EnsureCaptureTexture() {
@@ -366,7 +395,11 @@ class OverlayApp {
       state->center[0] = centerX;
       state->center[1] = centerY;
       state->strength = 1.0f;
-      state->padding0 = 0.0f;
+      state->overlayScale = 1.35f;
+      state->overlayFeather = 0.075f;
+      state->padding0[0] = 0.0f;
+      state->padding0[1] = 0.0f;
+      state->padding0[2] = 0.0f;
       context_->Unmap(constantBuffer_.Get(), 0);
     }
   }
@@ -434,7 +467,10 @@ class OverlayApp {
 
   ComPtr<ID3D11Device> device_;
   ComPtr<ID3D11DeviceContext> context_;
-  ComPtr<IDXGISwapChain> swapChain_;
+  ComPtr<IDXGISwapChain1> swapChain_;
+  ComPtr<IDCompositionDevice> compositionDevice_;
+  ComPtr<IDCompositionTarget> compositionTarget_;
+  ComPtr<IDCompositionVisual> compositionVisual_;
   ComPtr<ID3D11RenderTargetView> renderTarget_;
   ComPtr<ID3D11VertexShader> vertexShader_;
   ComPtr<ID3D11PixelShader> pixelShader_;

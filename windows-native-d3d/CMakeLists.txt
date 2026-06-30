@@ -14,6 +14,7 @@ target_link_libraries(BlackHoleRestNativeD3D
     d3d11
     dxgi
     d3dcompiler
+    dcomp
     user32
     gdi32
 )

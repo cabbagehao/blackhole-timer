@@ -88,11 +88,20 @@ windows-native-d3d/build/Release/BlackHoleRestNativeD3D.exe
 
 The native D3D host:
 
-- creates a Win32 borderless top-most overlay;
+- creates a Win32 borderless top-most DirectComposition overlay;
 - calls `SetWindowDisplayAffinity(..., WDA_EXCLUDEFROMCAPTURE)`;
 - captures the primary display through DXGI Desktop Duplication;
-- renders through D3D11 and `windows-native-d3d/src/BlackHoleOverlay.hlsl`;
+- renders a premultiplied-alpha D3D11 overlay through
+  `windows-native-d3d/src/BlackHoleOverlay.hlsl`, so only the black-hole
+  influence area is drawn and the rest of the desktop remains transparent;
 - supports `Ctrl+Alt+B` for click-through and `Ctrl+Alt+Q` to quit.
+
+From WSL, deploy to a Windows-local directory, then build and run on the Windows
+host with Windows CMake/Visual Studio tools, not WSL Electron:
+
+```sh
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '& "\\wsl.localhost\Ubuntu\home\yhc\Projects\tmp\blackhole-timer\scripts\deploy-windows-native.ps1"'
+```
 
 ## Comparison Notes
 

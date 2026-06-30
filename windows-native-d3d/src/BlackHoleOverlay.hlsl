@@ -8,7 +8,9 @@ cbuffer FrameState : register(b0)
     float intensity;
     float2 center;
     float strength;
-    float padding0;
+    float overlayScale;
+    float overlayFeather;
+    float3 padding0;
 }
 
 struct VSInput
@@ -90,5 +92,10 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 color = scene * (1.0 - vignette) + glow + photonRing * float3(1.0, 0.74, 0.36);
     color = lerp(color, float3(0.0, 0.0, 0.0), shadow);
 
-    return float4(saturate(color), 1.0);
+    float overlayRadius = max(lensRadius * overlayScale, horizon * 4.2);
+    float feather = max(overlayFeather, horizon * 0.65);
+    float overlayAlpha = 1.0 - smoothstep(overlayRadius - feather, overlayRadius, r);
+
+    color = saturate(color);
+    return float4(color * overlayAlpha, overlayAlpha);
 }

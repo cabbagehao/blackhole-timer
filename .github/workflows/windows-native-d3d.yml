@@ -1,0 +1,52 @@
+name: Windows Native D3D
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - windows-native-d3d-actions
+    paths:
+      - ".github/workflows/windows-native-d3d.yml"
+      - "windows-native-d3d/**"
+
+jobs:
+  build:
+    name: Build native D3D overlay
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake
+          -S windows-native-d3d
+          -B windows-native-d3d/build
+          -G "Visual Studio 17 2022"
+          -A x64
+
+      - name: Build
+        run: cmake --build windows-native-d3d/build --config Release
+
+      - name: Stage artifact
+        shell: pwsh
+        run: |
+          $stage = "artifact/BlackHoleTimer-Windows-NativeD3D"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item "windows-native-d3d/build/Release/BlackHoleRestNativeD3D.exe" $stage
+          Copy-Item "windows-native-d3d/build/Release/BlackHoleOverlay.hlsl" $stage
+          @"
+          Black Hole Timer Windows Native D3D
+
+          Run BlackHoleRestNativeD3D.exe.
+          Ctrl+Alt+B toggles click-through.
+          Ctrl+Alt+Q quits.
+          "@ | Set-Content -Encoding UTF8 "$stage/README.txt"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlackHoleTimer-Windows-NativeD3D
+          path: artifact/BlackHoleTimer-Windows-NativeD3D
+          if-no-files-found: error
