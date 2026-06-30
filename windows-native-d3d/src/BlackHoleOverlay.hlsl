@@ -42,8 +42,8 @@ static const float TOKEN_RUSH = 1.1000;
 static const float DEMO_SEC = 42.0000;
 static const float DEMO_XFADE = 0.1800;
 static const float B_CRIT = 2.5980762;
-static const float MAX_SHADOW_RADIUS = 0.0600;
-static const float MAX_OVERLAY_RADIUS = 0.3000;
+static const float MAX_SHADOW_RADIUS = 0.0350;
+static const float MAX_OVERLAY_RADIUS = 0.1600;
 static const int N_STEPS = 48;
 static const float PI = 3.1415927;
 static const float TAU = 6.2831853;
@@ -233,6 +233,10 @@ float4 PSMain(PSInput input) : SV_TARGET
     float yUp = 1.0 - uv.y;
     float t = time;
 
+    if (yUp < WORK_AREA) {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }
+
     DiskLook L = DemoLook(t);
     float rin = max(L.inner, 1.6);
     float rout = max(L.outer, rin + 0.5);
@@ -275,9 +279,9 @@ float4 PSMain(PSInput input) : SV_TARGET
     float2 pr = Rot(float2(p.x, -p.y), L.roll) * W;
     float bImpact = length(pr);
     float window = exp(-pow(plen / max(7.0 * rh, 1e-5), 2.0));
-    float overlayLimit = min(MAX_OVERLAY_RADIUS, max(overlayScale, rh * 7.0));
+    float overlayLimit = min(MAX_OVERLAY_RADIUS, max(0.0700, rh * 6.0));
     float overlayMask = 1.0 - Smooth01(overlayLimit - overlayFeather, overlayLimit, plen);
-    float overlayAlpha = saturate(max(window * shield, 1.0 - Smooth01(rh * 1.8, rh * 1.8 + overlayFeather, plen))) * overlayMask;
+    float overlayAlpha = overlayMask * shield;
 
     float bmax = rout + 3.0;
     float Z0 = max(14.0, rout + 5.0);

@@ -94,7 +94,8 @@ The native D3D host:
 - renders a premultiplied-alpha D3D11 overlay through
   `windows-native-d3d/src/BlackHoleOverlay.hlsl`, so only the black-hole
   influence area is drawn and the rest of the desktop remains transparent;
-- supports `Ctrl+Alt+B` for click-through and `Ctrl+Alt+Q` to quit.
+- runs as a visual-only, no-activate, click-through overlay;
+- supports `Ctrl+Alt+Q` to quit.
 
 From WSL, deploy to a Windows-local directory, then build and run on the Windows
 host with Windows CMake/Visual Studio tools, not WSL Electron:

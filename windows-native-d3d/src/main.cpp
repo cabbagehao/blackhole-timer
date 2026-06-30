@@ -105,7 +105,7 @@ class OverlayApp {
     const int width = GetSystemMetrics(SM_CXSCREEN);
     const int height = GetSystemMetrics(SM_CYSCREEN);
     hwnd_ = CreateWindowEx(
-        WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT | WS_EX_NOREDIRECTIONBITMAP,
+        WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_NOREDIRECTIONBITMAP,
         kWindowClass,
         L"Black Hole Rest Native D3D",
         WS_POPUP,
@@ -444,6 +444,10 @@ class OverlayApp {
           return 0;
         }
         break;
+      case WM_MOUSEACTIVATE:
+        return MA_NOACTIVATE;
+      case WM_NCHITTEST:
+        return HTTRANSPARENT;
       case WM_DESTROY:
         PostQuitMessage(0);
         return 0;

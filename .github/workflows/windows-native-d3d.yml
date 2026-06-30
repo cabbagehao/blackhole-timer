@@ -46,7 +46,7 @@ jobs:
           Black Hole Timer Windows Native D3D
 
           Run BlackHoleRestNativeD3D.exe.
-          Ctrl+Alt+B toggles click-through.
+          The overlay is visual-only and click-through.
           Ctrl+Alt+Q quits.
           "@ | Set-Content -Encoding UTF8 "$stage/README.txt"
 
