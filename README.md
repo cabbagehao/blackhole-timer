@@ -1,13 +1,13 @@
 <p align="right">
-  English | <a href="./README.zh-CN.md">简体中文</a>
+  EN | <a href="./README.zh-CN.md">ZH</a>
 </p>
 
 # Black Hole Timer
 
-Black Hole Timer is a visual focus timer that turns elapsed screen time into a
-growing, morphing black hole. The browser demo uses a WebGL2 port of the
-original Ghostty black hole shader, so the timer feels closer to a physical
-lensing effect than a normal progress bar.
+Black Hole Timer puts a morphing, ray-traced black hole directly inside a
+browser page. It turns elapsed focus or screen time into an accretion disk that
+grows, bends the page behind it, and makes "time to rest" feel impossible to
+ignore.
 
 ![Black Hole Timer browser demo preview](./docs/preview.webp)
 

@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": false,
   "type": "module",
-  "description": "Visual black hole timer demos for browser and Windows desktop hosts.",
+  "description": "A browser-based black hole effect that grows with elapsed focus time.",
   "license": "MIT",
   "homepage": "https://blackhole-timer.vercel.app",
   "repository": {
