@@ -442,7 +442,7 @@ function setPanelCollapsed(collapsed) {
 
 function syncPanelDefault() {
   if (!panelManuallyChanged) {
-    setPanelCollapsed(mobilePanelQuery.matches && state.running);
+    setPanelCollapsed(mobilePanelQuery.matches);
   }
 }
 
@@ -456,14 +456,12 @@ function formatTime(seconds) {
 toggleButton.addEventListener("click", () => {
   state.running = !state.running;
   state.lastRealTime = performance.now();
-  syncPanelDefault();
 });
 
 resetButton.addEventListener("click", () => {
   state.elapsed = 0;
   state.running = false;
   state.lastRealTime = performance.now();
-  syncPanelDefault();
 });
 
 thresholdInput.addEventListener("input", () => {
