@@ -4,10 +4,9 @@
 
 # Black Hole Timer
 
-Black Hole Timer puts a morphing, ray-traced black hole directly inside a
-browser page. It turns elapsed focus or screen time into an accretion disk that
-grows, bends the page behind it, and makes "time to rest" feel impossible to
-ignore.
+Black Hole Timer puts a real, ray-traced black hole inside your browser. It
+grows as your focus time fills up, bending the page behind it until "time to
+rest" is impossible to ignore.
 
 ![Black Hole Timer browser demo preview](./docs/preview.webp)
 

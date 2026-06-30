@@ -4,7 +4,7 @@
 
 # Black Hole Timer
 
-Black Hole Timer 把一个会变形、会扭曲页面的黑洞直接放进浏览器。专注或看屏幕的时间越长，吸积盘越明显，页面越像被黑洞吞进去，用比普通计时器更强烈的方式提醒用户该休息了。
+Black Hole Timer 把一个真实感的 ray-traced 黑洞放进浏览器。专注时间越接近上限，黑洞和吸积盘越明显，背后的页面越像被引力扭曲，用比普通计时器更强烈的方式提醒用户该休息了。
 
 ![Black Hole Timer 浏览器 demo 预览](./docs/preview.webp)
 

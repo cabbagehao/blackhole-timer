@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": false,
   "type": "module",
-  "description": "A browser-based black hole effect that grows with elapsed focus time.",
+  "description": "A real, ray-traced black hole inside your browser that grows with focus time.",
   "license": "MIT",
   "homepage": "https://blackhole-timer.vercel.app",
   "repository": {
