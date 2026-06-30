@@ -1,8 +1,4 @@
-<p align="right">
-  EN | <a href="./README.zh-CN.md">ZH</a>
-</p>
-
-# Black Hole Timer
+# Black Hole Timer <sub><sup>EN | [ZH](./README.zh-CN.md)</sup></sub>
 
 Black Hole Timer puts a real, ray-traced black hole inside your browser. It
 grows as your focus time fills up, bending the page behind it until "time to

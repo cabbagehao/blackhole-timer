@@ -1,8 +1,4 @@
-<p align="right">
-  <a href="./README.md">EN</a> | ZH
-</p>
-
-# Black Hole Timer
+# Black Hole Timer <sub><sup>[EN](./README.md) | ZH</sup></sub>
 
 Black Hole Timer 把一个真实感的 ray-traced 黑洞放进浏览器。专注时间越接近上限，黑洞和吸积盘越明显，背后的页面越像被引力扭曲，用比普通计时器更强烈的方式提醒用户该休息了。
 
